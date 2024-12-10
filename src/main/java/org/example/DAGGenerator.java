@@ -53,7 +53,7 @@ public class DAGGenerator {
         return task;
     }
 
-    // Print the DAG
+    // Print DAG
     public static void printDAG(List<Task> tasks) {
         System.out.println("Generated DAG:");
         for (Task task : tasks) {
