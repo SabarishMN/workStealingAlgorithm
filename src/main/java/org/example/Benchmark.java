@@ -21,10 +21,8 @@ public class Benchmark {
         int arraySize = Integer.parseInt(args[2]);
         int iterations = Integer.parseInt(args[3]);
 
-
         int[] array = generateRandomArray(arraySize);
         System.out.println("Benchmarking " + algorithm + " with array size " + arraySize + " using " + numThreads + " threads over " + iterations + " iterations.");
-
 
         if (algorithm.equalsIgnoreCase("custom")) {
             benchmarkCustomWorkStealing(array, numThreads, iterations);
@@ -54,7 +52,11 @@ public class Benchmark {
             System.out.println("Iteration " + (i + 1) + ": Custom Work-Stealing Execution Time: " + executionTime + " ms");
         }
 
-        System.out.println("Average Custom Work-Stealing Execution Time: " + (totalExecutionTime / iterations) + " ms");
+        long averageExecutionTime = totalExecutionTime / iterations;
+        double averageTimePerThread = (double) averageExecutionTime / numThreads;
+
+        System.out.println("Average Custom Work-Stealing Execution Time: " + averageExecutionTime + " ms");
+        System.out.println("Average Execution Time Per Thread: " + averageTimePerThread + " ms");
     }
 
     private static void benchmarkForkJoin(int[] array, int numThreads, int iterations) {
@@ -75,6 +77,10 @@ public class Benchmark {
             System.out.println("Iteration " + (i + 1) + ": ForkJoinPool Execution Time: " + executionTime + " ms");
         }
 
-        System.out.println("Average ForkJoinPool Execution Time: " + (totalExecutionTime / iterations) + " ms");
+        long averageExecutionTime = totalExecutionTime / iterations;
+        double averageTimePerThread = (double) averageExecutionTime / numThreads;
+
+        System.out.println("Average ForkJoinPool Execution Time: " + averageExecutionTime + " ms");
+        System.out.println("Average Execution Time Per Thread: " + averageTimePerThread + " ms");
     }
 }
