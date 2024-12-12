@@ -48,29 +48,32 @@ public class WorkStealing {
 
     private void runWorker(int threadId) {
         Deque<Task> queue = taskQueues.get(threadId);
-        int idleTime = 1; // Start with a small idle time
+        int idleChecks = 0; // Counter to track idle attempts
 
         while (true) {
             Task task = queue.pollFirst();
 
             if (task == null) {
-                task = stealTask(threadId);
-                if (task == null) {
-                    try {
-                        Thread.sleep(idleTime); // Sleep for the current idle time
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                    idleTime = Math.min(idleTime * 2, 100); // Exponential backoff up to a limit
-                    continue;
-                }
+                task = stealTask(threadId); // Attempt to steal tasks
+                idleChecks++;
             }
 
-            idleTime = 1; // Reset idle time if work is found
-            if (task != null) {
-                processTask(task, threadId);
+            if (task == null) {
+                if (idleChecks > 10) {
+                    break; // Exit if no tasks are left to process or steal
+                }
+                continue; // Keep checking
             }
+
+            idleChecks = 0; // Reset idle checks if a task is found
+
+            // Skip already completed tasks
+            if (task.isCompleted) {
+                continue;
+            }
+
+            //System.out.println("Thread " + threadId + " is processing Task " + task.id);
+            processTask(task, threadId);
         }
     }
 
@@ -78,14 +81,12 @@ public class WorkStealing {
         for (int i = 0; i < numThreads; i++) {
             if (i != threadId) {
                 Deque<Task> victimQueue = taskQueues.get(i);
-                if (!victimQueue.isEmpty()) { // First check without locking
-                    synchronized (victimQueue) {
-                        if (!victimQueue.isEmpty()) { // Double-check inside the lock
-                            Task stolen = victimQueue.pollLast();
-                            if (stolen != null) {
-                                System.out.println("Thread " + threadId + " stole Task " + stolen.id + " from Thread " + i);
-                                return stolen;
-                            }
+                synchronized (victimQueue) { // Synchronize to avoid race conditions
+                    if (!victimQueue.isEmpty()) {
+                        Task stolen = victimQueue.pollLast(); // Steal the last task
+                        if (stolen != null) {
+                            //System.out.println("Thread " + threadId + " stole Task " + stolen.id + " from Thread " + i);
+                            return stolen;
                         }
                     }
                 }
@@ -95,18 +96,28 @@ public class WorkStealing {
     }
 
     private void processTask(Task task, int threadId) {
-        if (task.end - task.start > 1000) { // Split threshold
-            int mid = (task.start + task.end) / 2;
-            Task left = new Task(task.id * 2, task.array, task.start, mid, new ArrayList<>());
-            Task right = new Task(task.id * 2 + 1, task.array,mid + 1, task.end, new ArrayList<>());
-            taskQueues.get(threadId).addFirst(left);
-            taskQueues.get(threadId).addFirst(right);
-        } else {
-            merge(task.array, task.start, (task.start + task.end) / 2, task.end);
-            task.isCompleted = true;
+        // Check if all dependencies are completed
+        for (Task dependency : task.dependencies) {
+            if (!dependency.isCompleted) {
+                //System.out.println("Task " + task.id + " re-queued due to incomplete dependency " + dependency.id);
+                // Re-queue the dependency task first
+                taskQueues.get(threadId).add(dependency);
+                taskQueues.get(threadId).add(task); // Re-add this task after the dependency
+                return; // Exit to avoid processing an incomplete task
+            }
         }
-    }
 
+        // Perform merging if the task represents a range
+        if (task.start < task.end) {
+            int mid = (task.start + task.end) / 2;
+            merge(task.array, task.start, mid, task.end);
+        }
+
+        // Mark task as completed
+        task.isCompleted = true;
+
+        //System.out.println("Thread " + threadId + " processed Task " + task.id);
+    }
 
     private void merge(int[] array, int start, int mid, int end) {
         int[] temp = new int[end - start + 1];

@@ -31,10 +31,9 @@ public class DAGGenerator {
     }
 
     private static int taskIdCounter = 0;
-
     public static Task generateMergeSortDAG(int[] array, int start, int end) {
         int taskId = taskIdCounter++; // Generate a unique task ID
-        Task task = new Task(taskId, array, start, end, new ArrayList<>());
+        Task task = new Task(taskId, array, start, end);
 
         if (start < end) {
             int mid = (start + end) / 2;
@@ -47,13 +46,13 @@ public class DAGGenerator {
             task.dependencies.add(leftTask);
             task.dependencies.add(rightTask);
 
-            System.out.println("Task " + task.id + " depends on: " + leftTask.id + ", " + rightTask.id);
+            //System.out.println("Task " + task.id + " depends on: " + leftTask.id + ", " + rightTask.id);
         }
 
         return task;
     }
 
-    // Print DAG
+    // Print the DAG
     public static void printDAG(List<Task> tasks) {
         System.out.println("Generated DAG:");
         for (Task task : tasks) {

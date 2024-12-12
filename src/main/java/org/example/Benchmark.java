@@ -10,66 +10,88 @@ public class Benchmark {
         Random random = new Random();
         int[] array = new int[size];
         for (int i = 0; i < size; i++) {
-            array[i] = random.nextInt(50); // Random numbers between 0 and 999,999
+            array[i] = random.nextInt(100000); // Random numbers between 0 and 50
         }
         return array;
     }
 
     public static void main(String[] args) {
-        if (args.length < 3) {
-            System.out.println("Usage: java Benchmark <algorithm> <numThreads> <arraySize>");
-            System.out.println("<algorithm>: 'custom' or 'forkjoin'");
-            System.out.println("<numThreads>: Number of threads to use");
-            System.out.println("<arraySize>: Size of the array to sort");
-            return;
-        }
+        //  if (args.length < 4) {
+        //     System.out.println("Usage: java Benchmark <algorithm> <numThreads> <arraySize> <iterations>");
+        //   System.out.println("<algorithm>: 'custom' or 'forkjoin'");
+        // System.out.println("<numThreads>: Number of threads to use");
+        // System.out.println("<arraySize>: Size of the array to sort");
+        // System.out.println("<iterations>: Number of iterations to run");
+        //  return;
+        // }
 
         // Parse arguments
         String algorithm = args[0]; // 'custom' or 'forkjoin'
         int numThreads = Integer.parseInt(args[1]); // Number of threads
         int arraySize = Integer.parseInt(args[2]); // Size of the array
+        int iterations = Integer.parseInt(args[3]); // Number of iterations
 
         // Generate a random array
         int[] array = generateRandomArray(arraySize);
-        System.out.println("Sorting array of size: " + arraySize + " using " + algorithm + " with " + numThreads + " threads.");
+        System.out.println("Benchmarking " + algorithm + " with array size " + arraySize + " using " + numThreads + " threads over " + iterations + " iterations.");
 
         // Benchmark based on the chosen algorithm
         if (algorithm.equalsIgnoreCase("custom")) {
-            runCustomWorkStealing(array, numThreads);
+            benchmarkCustomWorkStealing(array, numThreads, iterations);
         } else if (algorithm.equalsIgnoreCase("forkjoin")) {
-            runForkJoin(array, numThreads);
+            benchmarkForkJoin(array, numThreads, iterations);
         } else {
             System.out.println("Invalid algorithm. Use 'custom' or 'forkjoin'.");
         }
     }
 
-    private static void runCustomWorkStealing(int[] array, int numThreads) {
-        // Generate the DAG for merge sort
-        Task rootTask = DAGGenerator.generateMergeSortDAG(array, 0, array.length - 1);
+    private static void benchmarkCustomWorkStealing(int[] array, int numThreads, int iterations) {
+        long totalExecutionTime = 0;
+        for (int i = 0; i < iterations; i++) {
+            // Clone the array for each iteration
+            int[] arrayCopy = array.clone();
 
-        // Execute the custom work-stealing algorithm
-        WorkStealing workStealing = new WorkStealing(numThreads);
+            // Generate the DAG for merge sort
+            Task rootTask = DAGGenerator.generateMergeSortDAG(arrayCopy, 0, arrayCopy.length - 1);
 
-        long startTime = System.nanoTime();
-        workStealing.execute(rootTask);
-        long endTime = System.nanoTime();
+            // Execute the custom work-stealing algorithm
+            WorkStealing workStealing = new WorkStealing(numThreads);
 
-        System.out.println("Sorted Array: " + java.util.Arrays.toString(array));
-        System.out.println("Custom Work-Stealing Execution Time: " + (endTime - startTime) / 1_000_000 + " ms");
+            long startTime = System.nanoTime();
+            workStealing.execute(rootTask);
+            long endTime = System.nanoTime();
+
+            long executionTime = (endTime - startTime) / 1_000_000; // Convert to milliseconds
+            totalExecutionTime += executionTime;
+
+            System.out.println("Iteration " + (i + 1) + ": Custom Work-Stealing Execution Time: " + executionTime + " ms");
+        }
+
+        System.out.println("Average Custom Work-Stealing Execution Time: " + (totalExecutionTime / iterations) + " ms");
     }
 
-    private static void runForkJoin(int[] array, int numThreads) {
-        // Create a ForkJoinPool with the specified number of threads
-        ForkJoinPool pool = new ForkJoinPool(numThreads);
+    private static void benchmarkForkJoin(int[] array, int numThreads, int iterations) {
+        long totalExecutionTime = 0;
+        for (int i = 0; i < iterations; i++) {
+            // Clone the array for each iteration
+            int[] arrayCopy = array.clone();
 
-        // Create the root task for merge sort
-        ForkJoinMergeSort task = new ForkJoinMergeSort(array, 0, array.length - 1);
+            // Create a ForkJoinPool with the specified number of threads
+            ForkJoinPool pool = new ForkJoinPool(numThreads);
 
-        long startTime = System.nanoTime();
-        pool.invoke(task);
-        long endTime = System.nanoTime();
+            // Create the root task for merge sort
+            ForkJoinMergeSort task = new ForkJoinMergeSort(arrayCopy, 0, arrayCopy.length - 1);
 
-        System.out.println("Sorted Array: " + java.util.Arrays.toString(array));
-        System.out.println("ForkJoinPool Execution Time: " + (endTime - startTime) / 1_000_000 + " ms");
+            long startTime = System.nanoTime();
+            pool.invoke(task);
+            long endTime = System.nanoTime();
+
+            long executionTime = (endTime - startTime) / 1_000_000; // Convert to milliseconds
+            totalExecutionTime += executionTime;
+
+            System.out.println("Iteration " + (i + 1) + ": ForkJoinPool Execution Time: " + executionTime + " ms");
+        }
+
+        System.out.println("Average ForkJoinPool Execution Time: " + (totalExecutionTime / iterations) + " ms");
     }
 }

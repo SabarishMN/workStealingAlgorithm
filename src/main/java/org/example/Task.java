@@ -9,7 +9,6 @@ public class Task {
     public boolean isCompleted;
     public int[] array;              // Array for merge sort
     public int start, end;           // Start and end indices
-    public int remainingDependencies;
 
     // Constructor for a simple task
     public Task(int id) {
@@ -19,16 +18,13 @@ public class Task {
     }
 
     // Constructor for a merge sort task
-    public Task(int id, int[] array, int start, int end, List<Task> dependencies) {
+    public Task(int id, int[] array, int start, int end) {
         this.id = id;
         this.array = array;
         this.start = start;
         this.end = end;
         this.dependencies = new ArrayList<>();
         this.isCompleted = false;
-        this.remainingDependencies = dependencies.size();
     }
-     public void resolveDependency() {
-        remainingDependencies--;
-     }
 }
+
