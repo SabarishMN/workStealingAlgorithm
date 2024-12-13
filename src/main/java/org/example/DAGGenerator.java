@@ -5,17 +5,17 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class DAGGenerator {
-    // Generate a simple DAG
+
     public static List<Task> generateDAG(int numTasks, int maxDependencies) {
         Random random = new Random();
         List<Task> tasks = new ArrayList<>();
 
-        // Create all tasks
+
         for (int i = 0; i < numTasks; i++) {
             tasks.add(new Task(i));
         }
 
-        // Add dependencies (ensure no cycles)
+
         for (int i = 0; i < numTasks; i++) {
             Task task = tasks.get(i);
             int numDependencies = random.nextInt(Math.min(maxDependencies, i + 1));
@@ -38,15 +38,14 @@ public class DAGGenerator {
         if (start < end) {
             int mid = (start + end) / 2;
 
-            // Generate left and right tasks recursively
+
             Task leftTask = generateMergeSortDAG(array, start, mid);
             Task rightTask = generateMergeSortDAG(array, mid + 1, end);
 
-            // Add left and right tasks as dependencies
+
             task.dependencies.add(leftTask);
             task.dependencies.add(rightTask);
 
-            //System.out.println("Task " + task.id + " depends on: " + leftTask.id + ", " + rightTask.id);
         }
 
         return task;

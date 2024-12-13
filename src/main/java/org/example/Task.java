@@ -5,12 +5,11 @@ import java.util.ArrayList;
 
 public class Task {
     public int id;
-    public List<Task> dependencies;  // Task dependencies
+    public List<Task> dependencies;
     public boolean isCompleted;
-    public int[] array;              // Array for merge sort
-    public int start, end;           // Start and end indices
+    public int[] array;
+    public int start, end;
 
-    // Constructor for a simple task
     public Task(int id) {
         this.id = id;
         this.dependencies = new ArrayList<>();
