@@ -11,7 +11,7 @@ public class WorkStealing {
 
     public WorkStealing(int numThreads) {
         this.numThreads = numThreads;
-        taskQueues = new ArrayList<>(1000);
+        taskQueues = new ArrayList<>();
         for (int i = 0; i < numThreads; i++) {
             taskQueues.add(new ArrayDeque<>());
         }
@@ -24,7 +24,6 @@ public class WorkStealing {
                 taskQueues.get(i).add(rootTask.dependencies.get(i % rootTask.dependencies.size()));
             }
         }
-
 
         List<Thread> workers = new ArrayList<>();
         for (int i = 0; i < numThreads; i++) {
@@ -70,7 +69,7 @@ public class WorkStealing {
                 continue;
             }
 
-
+            //System.out.println("Thread " + threadId + " is processing Task " + task.id);
             processTask(task, threadId);
         }
     }
@@ -83,6 +82,7 @@ public class WorkStealing {
                     if (!victimQueue.isEmpty()) {
                         Task stolen = victimQueue.pollLast();
                         if (stolen != null) {
+                            //System.out.println("Thread " + threadId + " stole Task " + stolen.id + " from Thread " + i);
                             return stolen;
                         }
                     }
@@ -95,22 +95,22 @@ public class WorkStealing {
     private void processTask(Task task, int threadId) {
         for (Task dependency : task.dependencies) {
             if (!dependency.isCompleted) {
+                //System.out.println("Task " + task.id + " re-queued due to incomplete dependency " + dependency.id);
+
                 taskQueues.get(threadId).add(dependency);
                 taskQueues.get(threadId).add(task);
                 return;
             }
         }
 
-
         if (task.start < task.end) {
             int mid = (task.start + task.end) / 2;
             merge(task.array, task.start, mid, task.end);
         }
 
-
         task.isCompleted = true;
 
-
+        //System.out.println("Thread " + threadId + " processed Task " + task.id);
     }
 
     private void merge(int[] array, int start, int mid, int end) {
@@ -132,7 +132,6 @@ public class WorkStealing {
         while (j <= end) {
             temp[k++] = array[j++];
         }
-
         System.arraycopy(temp, 0, array, start, temp.length);
     }
 }

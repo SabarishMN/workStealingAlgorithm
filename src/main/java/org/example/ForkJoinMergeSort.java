@@ -18,11 +18,10 @@ public class ForkJoinMergeSort extends RecursiveAction {
         if (start < end) {
             int mid = (start + end) / 2;
 
+
             ForkJoinMergeSort leftTask = new ForkJoinMergeSort(array, start, mid);
             ForkJoinMergeSort rightTask = new ForkJoinMergeSort(array, mid + 1, end);
-
             invokeAll(leftTask, rightTask);
-
             merge(start, mid, end);
         }
     }
@@ -54,11 +53,8 @@ public class ForkJoinMergeSort extends RecursiveAction {
         int[] array = {38, 27, 43, 3, 9, 82, 10};
 
         ForkJoinPool pool = new ForkJoinPool();
-
         ForkJoinMergeSort task = new ForkJoinMergeSort(array, 0, array.length - 1);
-
         pool.invoke(task);
-
         System.out.println("Sorted Array: " + java.util.Arrays.toString(array));
     }
 }

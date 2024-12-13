@@ -9,7 +9,7 @@ public class Benchmark {
         Random random = new Random();
         int[] array = new int[size];
         for (int i = 0; i < size; i++) {
-            array[i] = random.nextInt(100000); // Random numbers between 0 and 50
+            array[i] = random.nextInt(50);
         }
         return array;
     }
@@ -52,17 +52,19 @@ public class Benchmark {
             System.out.println("Iteration " + (i + 1) + ": Custom Work-Stealing Execution Time: " + executionTime + " ms");
         }
 
-        System.out.println("Average Custom Work-Stealing Execution Time: " + (totalExecutionTime / iterations) + " ms");
-        System.out.println("Average Thread Custom Execution Time: " + (totalExecutionTime / numThreads) + " ms");
+        long averageExecutionTime = totalExecutionTime / iterations;
+        double averageTimePerThread = (double) averageExecutionTime / numThreads;
+
+        System.out.println("Average Custom Work-Stealing Execution Time: " + averageExecutionTime + " ms");
+        System.out.println("Average Execution Time Per Thread: " + averageTimePerThread + " ms");
     }
 
     private static void benchmarkForkJoin(int[] array, int numThreads, int iterations) {
         long totalExecutionTime = 0;
         for (int i = 0; i < iterations; i++) {
+
             int[] arrayCopy = array.clone();
-
             ForkJoinPool pool = new ForkJoinPool(numThreads);
-
             ForkJoinMergeSort task = new ForkJoinMergeSort(arrayCopy, 0, arrayCopy.length - 1);
 
             long startTime = System.nanoTime();
@@ -75,6 +77,10 @@ public class Benchmark {
             System.out.println("Iteration " + (i + 1) + ": ForkJoinPool Execution Time: " + executionTime + " ms");
         }
 
-        System.out.println("Average ForkJoinPool Execution Time: " + (totalExecutionTime / iterations) + " ms");
+        long averageExecutionTime = totalExecutionTime / iterations;
+        double averageTimePerThread = (double) averageExecutionTime / numThreads;
+
+        System.out.println("Average ForkJoinPool Execution Time: " + averageExecutionTime + " ms");
+        System.out.println("Average Execution Time Per Thread: " + averageTimePerThread + " ms");
     }
 }

@@ -10,13 +10,14 @@ public class Task {
     public int[] array;
     public int start, end;
 
+
     public Task(int id) {
         this.id = id;
         this.dependencies = new ArrayList<>();
         this.isCompleted = false;
     }
 
-    // Constructor for a merge sort task
+
     public Task(int id, int[] array, int start, int end) {
         this.id = id;
         this.array = array;
